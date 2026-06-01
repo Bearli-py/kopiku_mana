@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "554068130432",
+    "project_id": "kopiku-mana",
+    "storage_bucket": "kopiku-mana.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:554068130432:android:9b334d4c82cdbfcb388465",
+        "android_client_info": {
+          "package_name": "com.example.kopiku_mana"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC68NzrPdQuPr9XrNqFPQTfRa4eBBFJEsU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
