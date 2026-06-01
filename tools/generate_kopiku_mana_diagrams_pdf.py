@@ -255,85 +255,65 @@ def overview_page(doc: PdfDoc):
 def use_case_diagram_page(doc: PdfDoc):
     doc.new_page(landscape(A4), "2. Use Case Diagram")
     w, h = doc.width, doc.height
-    boundary = (150, 58, 540, 460)
+    boundary = (155, 64, 535, 430)
     doc.c.setFillColor(colors.white)
     doc.c.setStrokeColor(BROWN)
     doc.c.roundRect(*boundary, 10, fill=1, stroke=1)
     doc.text(boundary[0] + boundary[2] / 2, boundary[1] + boundary[3] - 20, "Sistem Kopiku Mana", size=13, bold=True, color=BROWN, align="center")
 
     actors = {
-        "Pengguna": (62, 305),
-        "Pengguna Baru": (62, 185),
-        "Mitra Cafe": (62, 72),
-        "Firebase": (762, 405),
-        "GPS": (762, 335),
-        "ImgBB": (762, 265),
-        "Backend/Midtrans": (762, 195),
-        "Admin": (762, 95),
+        "Pengguna": (70, 325),
+        "Pengguna Baru": (70, 213),
+        "Mitra Cafe": (70, 105),
+        "Firebase": (760, 405),
+        "GPS": (760, 335),
+        "ImgBB": (760, 265),
+        "Backend/Midtrans": (760, 195),
+        "Admin": (760, 105),
     }
     for label, (x, y) in actors.items():
         doc.actor(x, y, label)
 
-    cases = [
-        ("Registrasi Akun", 190, 422),
-        ("Login", 335, 422),
-        ("Reset Password", 505, 422),
-        ("Jelajah Cafe", 190, 355),
-        ("Cari dan Filter Cafe", 335, 355),
-        ("Lihat Detail Cafe", 505, 355),
-        ("Kelola Wishlist", 190, 288),
-        ("Tulis Ulasan", 335, 288),
-        ("Kelola Profil", 505, 288),
-        ("Aktifkan Premium", 190, 221),
-        ("Top Up Poin", 335, 221),
-        ("Bagikan Referral", 505, 221),
-        ("Lihat Riwayat", 190, 154),
-        ("Atur Notifikasi", 335, 154),
-        ("Ajukan Sponsor", 505, 154),
-        ("Kelola Data Cafe", 335, 87),
+    groups = [
+        ("Akun", 190, 392, ["Registrasi", "Login", "Reset Password", "Kelola Profil"]),
+        ("Cari Cafe", 420, 392, ["Jelajah Cafe", "Cari & Filter", "Lihat Detail"]),
+        ("Aktivitas Pengguna", 190, 245, ["Wishlist", "Tulis Ulasan", "Lihat Riwayat", "Atur Notifikasi"]),
+        ("Poin & Membership", 420, 245, ["Referral", "Top Up Poin", "Aktifkan Premium"]),
+        ("Sponsor & Admin", 305, 110, ["Ajukan Sponsor", "Kelola Data Cafe"]),
     ]
-    centers = {}
-    for name, x, y in cases:
-        doc.ellipse(x, y, 125, 38, name, fill=CREAM, stroke=BROWN, size=7.3)
-        centers[name] = (x + 62.5, y + 19)
+    group_centers = {}
+    for title, x, y, items in groups:
+        doc.box(x, y - 112, 190, 112, title, fill=CREAM, stroke=BROWN, radius=9, title_size=9.5)
+        group_centers[title] = (x + 95, y - 56)
+        item_y = y - 37
+        for item in items:
+            doc.ellipse(x + 24, item_y - 16, 142, 25, item, fill=colors.white, stroke=colors.HexColor("#B58B71"), size=7.2)
+            item_y -= 23
 
-    def connect_actor(actor, case, color=colors.HexColor("#8A8A8A")):
+    def actor_to_group(actor, group, label):
         ax, ay = actors[actor]
-        cx, cy = centers[case]
-        start_x = ax + 22 if ax < w / 2 else ax - 22
-        doc.arrow(start_x, ay + 15, cx, cy, color=color)
+        gx, gy = group_centers[group]
+        doc.arrow(ax + 24, ay + 16, gx - 95, gy, label=label, color=GRAY)
 
-    for case in [
-        "Login",
-        "Jelajah Cafe",
-        "Cari dan Filter Cafe",
-        "Lihat Detail Cafe",
-        "Kelola Wishlist",
-        "Tulis Ulasan",
-        "Kelola Profil",
-        "Aktifkan Premium",
-        "Top Up Poin",
-        "Bagikan Referral",
-        "Lihat Riwayat",
-        "Atur Notifikasi",
-    ]:
-        connect_actor("Pengguna", case)
-    connect_actor("Pengguna Baru", "Registrasi Akun")
-    connect_actor("Pengguna Baru", "Reset Password")
-    connect_actor("Mitra Cafe", "Ajukan Sponsor")
-    for actor, case in [
-        ("Firebase", "Login"),
-        ("Firebase", "Registrasi Akun"),
-        ("Firebase", "Kelola Profil"),
-        ("GPS", "Jelajah Cafe"),
-        ("ImgBB", "Tulis Ulasan"),
-        ("Backend/Midtrans", "Top Up Poin"),
-        ("Admin", "Kelola Data Cafe"),
-        ("Admin", "Ajukan Sponsor"),
-    ]:
-        connect_actor(actor, case, color=BLUE if actor != "GPS" else GREEN)
+    actor_to_group("Pengguna", "Akun", "masuk/profil")
+    actor_to_group("Pengguna", "Cari Cafe", "mencari")
+    actor_to_group("Pengguna", "Aktivitas Pengguna", "menyimpan/review")
+    actor_to_group("Pengguna", "Poin & Membership", "poin")
+    actor_to_group("Pengguna Baru", "Akun", "daftar")
+    actor_to_group("Mitra Cafe", "Sponsor & Admin", "sponsor")
 
-    doc.text(1.3 * cm, 1.15 * cm, "Relasi utama: pengguna mengakses fitur inti, sementara layanan eksternal memproses autentikasi, data, lokasi, foto, dan pembayaran.", size=8, color=GRAY)
+    def service_to_group(service, group, label, color=BLUE):
+        sx, sy = actors[service]
+        gx, gy = group_centers[group]
+        doc.arrow(sx - 24, sy + 16, gx + 95, gy, label=label, color=color)
+
+    service_to_group("Firebase", "Akun", "auth")
+    service_to_group("GPS", "Cari Cafe", "lokasi", color=GREEN)
+    service_to_group("ImgBB", "Aktivitas Pengguna", "foto")
+    service_to_group("Backend/Midtrans", "Poin & Membership", "bayar")
+    service_to_group("Admin", "Sponsor & Admin", "kelola")
+
+    doc.text(1.3 * cm, 1.15 * cm, "Cara baca: kiri adalah aktor utama, tengah adalah kelompok fitur, kanan adalah layanan/admin yang membantu proses.", size=8, color=GRAY)
     doc.finish_page()
 
 
@@ -393,71 +373,69 @@ def dfd_level_0_page(doc: PdfDoc):
 
 def dfd_level_1_page(doc: PdfDoc):
     doc.new_page(landscape(A4), "4. DFD Level 1")
-    w, h = doc.width, doc.height
-    doc.box(28, 386, 95, 46, "Pengguna", "Input fitur dan menerima hasil.", fill=colors.white, stroke=BROWN, radius=4)
-    doc.box(28, 304, 95, 46, "Admin", "Kelola data cafe dan sponsor.", fill=colors.white, stroke=BROWN, radius=4)
-    doc.box(28, 222, 95, 46, "Mitra Cafe", "Ajukan kerja sama sponsor.", fill=colors.white, stroke=BROWN, radius=4)
-    doc.box(710, 400, 100, 46, "Firebase Auth", "Session dan autentikasi.", fill=colors.white, stroke=BLUE, radius=4)
-    doc.box(710, 316, 100, 46, "GPS", "Koordinat pengguna.", fill=colors.white, stroke=GREEN, radius=4)
-    doc.box(710, 232, 100, 46, "ImgBB", "URL foto.", fill=colors.white, stroke=BLUE, radius=4)
-    doc.box(710, 148, 100, 46, "Backend/Midtrans", "Pembayaran top up.", fill=colors.white, stroke=BLUE, radius=4)
+    doc.box(30, 372, 105, 56, "Pengguna", "Login, cari cafe, wishlist, review, poin, premium, top up.", fill=colors.white, stroke=BROWN, radius=5)
+    doc.box(30, 260, 105, 50, "Mitra Cafe", "Mengajukan sponsor via email.", fill=colors.white, stroke=BROWN, radius=5)
+    doc.box(30, 150, 105, 50, "Admin", "Mengelola cafe dan sponsor.", fill=colors.white, stroke=BROWN, radius=5)
 
     processes = [
-        ("1.0 Autentikasi & Profil", 160, 412, "Login, register, profil, foto."),
-        ("2.0 Discovery Cafe", 360, 412, "Cafe populer, terdekat, top pick, hidden gems."),
-        ("3.0 Detail & Ulasan", 560, 412, "Detail cafe, review, poin review."),
-        ("4.0 Wishlist", 160, 300, "Simpan/hapus cafe favorit."),
-        ("5.0 Poin & Premium", 360, 300, "Redeem poin untuk premium."),
-        ("6.0 Referral", 560, 300, "Bagikan kode dan bonus poin."),
-        ("7.0 Top Up Poin", 160, 188, "Paket poin dan transaksi bayar."),
-        ("8.0 Notifikasi Lokal", 360, 188, "Reminder kunjungan/review/weekend."),
-        ("9.0 Sponsor", 560, 188, "Badge sponsor dan prioritas hasil."),
+        ("1.0 Autentikasi", 170, 392, "Validasi login/register dan profil."),
+        ("2.0 Cari Cafe", 330, 392, "Ambil cafe, filter, hitung jarak."),
+        ("3.0 Detail Cafe", 490, 392, "Tampilkan detail dan ulasan."),
+        ("4.0 Wishlist & Review", 170, 255, "Simpan cafe dan kirim ulasan."),
+        ("5.0 Poin, Referral, Premium", 330, 255, "Tambah/kurangi poin dan aktifkan premium."),
+        ("6.0 Top Up & Notifikasi", 490, 255, "Buat transaksi dan notifikasi lokal."),
+        ("7.0 Sponsor", 650, 255, "Prioritas cafe sponsor di hasil cari."),
     ]
     for title, x, y, body in processes:
-        doc.box(x, y, 130, 55, title, body, fill=LIGHT_BROWN, stroke=BROWN, radius=12, title_size=8.1)
+        doc.box(x, y, 125, 62, title, body, fill=LIGHT_BROWN, stroke=BROWN, radius=10, title_size=8.2)
+
+    services = [
+        ("Firebase Auth", 650, 408, "Autentikasi akun."),
+        ("GPS", 650, 340, "Koordinat lokasi."),
+        ("ImgBB", 650, 186, "Foto review/profil."),
+        ("Backend/Midtrans", 650, 118, "Pembayaran top up."),
+    ]
+    for title, x, y, body in services:
+        doc.box(x, y, 125, 44, title, body, fill=colors.white, stroke=BLUE if title != "GPS" else GREEN, radius=4, title_size=8)
 
     stores = [
-        ("D1 Users", 152, 74, "Profil, poin, premium, wishlist, referral."),
-        ("D2 Cafes", 282, 74, "Data cafe, lokasi, rating, sponsor."),
-        ("D3 Reviews", 412, 74, "Ulasan, rating, foto, verifikasi."),
-        ("D4 Point History", 542, 74, "Riwayat poin masuk/keluar."),
-        ("D5 Referral History", 672, 74, "Riwayat pemakaian kode."),
+        ("D1 Users", 170, 68, "Profil, poin, premium, wishlist, referral."),
+        ("D2 Cafes", 302, 68, "Data cafe, lokasi, rating, sponsor."),
+        ("D3 Reviews", 434, 68, "Ulasan, rating, foto, verifikasi."),
+        ("D4 Point History", 566, 68, "Riwayat poin."),
+        ("D5 Referral History", 698, 68, "Riwayat referral."),
     ]
     for title, x, y, body in stores:
         doc.datastore(x, y, 118, 46, title, body)
 
-    # Main actor and service flows.
-    doc.arrow(123, 409, 160, 436, "akun/profil")
-    doc.arrow(123, 409, 360, 436, "cari cafe")
-    doc.arrow(123, 409, 560, 436, "detail/review")
-    doc.arrow(123, 409, 160, 327, "wishlist")
-    doc.arrow(123, 409, 360, 327, "premium")
-    doc.arrow(123, 409, 560, 327, "referral")
-    doc.arrow(123, 409, 160, 216, "top up")
-    doc.arrow(123, 409, 360, 216, "notif")
-    doc.arrow(123, 327, 560, 216, "data sponsor")
-    doc.arrow(123, 245, 560, 216, "pengajuan")
-    doc.arrow(290, 436, 710, 423, "auth")
-    doc.arrow(490, 436, 710, 339, "lokasi")
-    doc.arrow(690, 436, 710, 255, "foto")
-    doc.arrow(290, 216, 710, 171, "transaksi")
+    # Alur utama dibuat berurutan agar mudah dibaca.
+    doc.arrow(135, 400, 170, 423, "akun")
+    doc.arrow(295, 423, 330, 423, "session")
+    doc.arrow(455, 423, 490, 423, "pilih cafe")
+    doc.arrow(232, 392, 232, 317, "profil")
+    doc.arrow(392, 392, 392, 317, "hasil cafe")
+    doc.arrow(552, 392, 232, 317, "cafe ID")
+    doc.arrow(295, 286, 330, 286, "poin review")
+    doc.arrow(455, 286, 490, 286, "saldo/status")
+    doc.arrow(615, 286, 650, 286, "sponsor")
+    doc.arrow(135, 285, 650, 286, "pengajuan")
+    doc.arrow(135, 175, 650, 286, "kelola data")
 
-    # Data store flows.
-    data_targets = [
-        ((225, 412), (211, 120), "D1"),
-        ((425, 412), (341, 120), "D2"),
-        ((625, 412), (471, 120), "D3"),
-        ((225, 300), (211, 120), "D1"),
-        ((425, 300), (601, 120), "D4"),
-        ((625, 300), (731, 120), "D5"),
-        ((225, 188), (211, 120), "D1"),
-        ((425, 188), (601, 120), "D4"),
-        ((625, 188), (341, 120), "D2"),
-    ]
-    for (x1, y1), (x2, y2), label in data_targets:
-        doc.arrow(x1, y1, x2, y2, label=label, color=BLUE)
+    # Layanan eksternal.
+    doc.arrow(295, 423, 650, 430, "auth", color=BLUE)
+    doc.arrow(455, 423, 650, 362, "lokasi", color=GREEN)
+    doc.arrow(295, 286, 650, 208, "foto", color=BLUE)
+    doc.arrow(552, 255, 650, 140, "transaksi", color=BLUE)
 
-    doc.text(1.25 * cm, 1.12 * cm, "Level 1 memecah proses inti dan menunjukkan hubungan proses dengan data store utama aplikasi.", size=8, color=GRAY)
+    # Data store utama, hanya garis penting.
+    doc.arrow(232, 255, 229, 114, "D1")
+    doc.arrow(392, 392, 361, 114, "D2")
+    doc.arrow(552, 392, 493, 114, "D3")
+    doc.arrow(392, 255, 625, 114, "D4")
+    doc.arrow(392, 255, 757, 114, "D5")
+    doc.arrow(712, 255, 361, 114, "D2 sponsor", color=BLUE)
+
+    doc.text(1.25 * cm, 1.12 * cm, "Cara baca: alur utama dari kiri ke kanan; bagian bawah adalah data store yang dipakai proses.", size=8, color=GRAY)
     doc.finish_page()
 
 
