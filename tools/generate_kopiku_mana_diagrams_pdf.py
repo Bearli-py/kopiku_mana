@@ -168,6 +168,11 @@ class PdfDoc:
             self.c.rect(mx - text_w / 2, my - 4, text_w, 10, fill=1, stroke=0)
             self.text(mx, my - 1, label, size=size, color=color, align="center")
 
+    def dashed_arrow(self, x1, y1, x2, y2, label="", color=GRAY, size=6.2):
+        self.c.setDash(4, 3)
+        self.arrow(x1, y1, x2, y2, label=label, color=color, size=size)
+        self.c.setDash()
+
     def actor(self, x, y, label):
         self.c.setStrokeColor(DARK)
         self.c.setFillColor(DARK)
@@ -307,13 +312,21 @@ def use_case_diagram_page(doc: PdfDoc):
         ("Akses Hidden Gems", 345, 112, colors.HexColor("#FFF2C2")),
         ("Wishlist Unlimited", 345, 82, colors.HexColor("#FFF2C2")),
         ("Badge Premium", 345, 52, colors.HexColor("#FFF2C2")),
-        ("Ajukan Sponsor", 477, 82, colors.white),
-        ("Kelola Data Cafe", 477, 52, colors.white),
+        ("Validasi Referral", 520, 428, colors.HexColor("#F5FAFF"), 96),
+        ("Baca Data Cafe", 520, 360, colors.HexColor("#F5FAFF"), 96),
+        ("Baca Review", 520, 300, colors.HexColor("#F5FAFF"), 96),
+        ("Upload Foto", 520, 262, colors.HexColor("#F5FAFF"), 96),
+        ("Proses Pembayaran", 520, 202, colors.HexColor("#F5FAFF"), 96),
+        ("Cek Saldo Poin", 520, 142, colors.HexColor("#F5FAFF"), 96),
+        ("Ajukan Sponsor", 497, 82, colors.white),
+        ("Kelola Data Cafe", 497, 52, colors.white),
     ]
     centers = {}
-    for name, x, y, fill in use_cases:
-        doc.ellipse(x, y, 150, 24, name, fill=fill, stroke=BROWN, size=7)
-        centers[name] = (x + 75, y + 12)
+    for item in use_cases:
+        name, x, y, fill = item[:4]
+        use_case_w = item[4] if len(item) > 4 else 150
+        doc.ellipse(x, y, use_case_w, 24, name, fill=fill, stroke=BROWN, size=7)
+        centers[name] = (x + use_case_w / 2, y + 12)
 
     # Aktor utama ke use case. Dibuat tipis agar tidak terlalu ramai.
     user_cases = [
@@ -337,7 +350,34 @@ def use_case_diagram_page(doc: PdfDoc):
     doc.arrow(495, 342, 646, 292, label="lokasi", color=GREEN)
     doc.arrow(495, 214, 646, 145, label="payment", color=GREEN)
     doc.arrow(495, 184, 646, 392, label="poin", color=GREEN)
-    doc.arrow(552, 94, 646, 392, label="sponsor", color=GREEN)
+    doc.arrow(572, 94, 646, 392, label="sponsor", color=GREEN)
+
+    # Relasi UML antar-use-case.
+    include_color = colors.HexColor("#2458A6")
+    extend_color = colors.HexColor("#B14A3A")
+    doc.dashed_arrow(495, 440, 520, 440, label="<<include>>", color=include_color)
+    doc.dashed_arrow(495, 372, 520, 372, label="<<include>>", color=include_color)
+    doc.dashed_arrow(495, 312, 520, 312, label="<<include>>", color=include_color)
+    doc.dashed_arrow(495, 214, 520, 214, label="<<include>>", color=include_color)
+    doc.dashed_arrow(495, 154, 520, 154, label="<<include>>", color=include_color)
+    doc.dashed_arrow(520, 274, 495, 274, label="<<extend>>", color=extend_color)
+    doc.dashed_arrow(420, 184, 420, 440, label="<<extend>>", color=extend_color)
+    doc.dashed_arrow(420, 244, 420, 312, label="<<extend>>", color=extend_color)
+    doc.dashed_arrow(420, 214, 420, 154, label="<<extend>>", color=extend_color)
+    doc.dashed_arrow(420, 124, 420, 154, label="<<extend>>", color=extend_color)
+    doc.dashed_arrow(420, 94, 420, 154, label="<<extend>>", color=extend_color)
+    doc.dashed_arrow(420, 64, 420, 154, label="<<extend>>", color=extend_color)
+
+    doc.c.setStrokeColor(include_color)
+    doc.c.setDash(4, 3)
+    doc.c.line(42, 55, 82, 55)
+    doc.c.setDash()
+    doc.text(87, 52, "<<include>> = proses wajib/dipakai", size=6.3, color=include_color)
+    doc.c.setStrokeColor(extend_color)
+    doc.c.setDash(4, 3)
+    doc.c.line(42, 42, 82, 42)
+    doc.c.setDash()
+    doc.text(87, 39, "<<extend>> = fitur opsional/kondisional", size=6.3, color=extend_color)
 
     doc.text(1.3 * cm, 1.15 * cm, "Catatan: fitur berwarna kuning adalah benefit Premium. Aktor Premium tidak dipisah karena Premium adalah status akun pengguna.", size=7.5, color=GRAY)
     doc.finish_page()

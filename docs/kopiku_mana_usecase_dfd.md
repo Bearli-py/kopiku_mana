@@ -46,13 +46,17 @@ Kopiku Mana adalah aplikasi rekomendasi cafe wilayah Tapal Kuda. Pengguna dapat 
 
 ### Relasi Use Case
 
-- "Registrasi Akun" menyertakan validasi referral jika pengguna mengisi kode.
-- "Jelajah Cafe" dapat memakai lokasi GPS untuk menampilkan cafe terdekat.
-- "Cari dan Filter Cafe" menampilkan cafe sponsor lebih dahulu bila sponsor aktif.
-- "Tulis Ulasan" dapat menyertakan upload foto ke ImgBB.
-- "Aktifkan Premium" menyertakan validasi saldo poin dan pencatatan riwayat poin.
-- "Top Up Poin" menyertakan pembuatan transaksi melalui backend pembayaran.
-- "Kelola Wishlist" memperluas benefit premium karena premium membuka wishlist tanpa batas.
+- "Registrasi" `<<include>>` "Validasi Referral" jika pengguna mengisi kode referral saat daftar.
+- "Cari & Filter Cafe" `<<include>>` "Baca Data Cafe" karena data cafe selalu diambil dari Firestore.
+- "Lihat Detail Cafe" `<<include>>` "Baca Review" untuk menampilkan ulasan cafe.
+- "Top Up Poin" `<<include>>` "Proses Pembayaran" melalui Backend Railway/Midtrans.
+- "Upgrade Premium" `<<include>>` "Cek Saldo Poin" sebelum premium diaktifkan.
+- "Referral" `<<extend>>` "Registrasi" karena kode referral bersifat opsional saat pengguna baru daftar.
+- "Tulis Review + Foto" `<<extend>>` "Lihat Detail Cafe" karena review dibuat dari halaman detail.
+- "Upload Foto" `<<extend>>` "Tulis Review + Foto" karena foto ulasan bersifat opsional.
+- "Wishlist Cafe" `<<extend>>` "Lihat Detail Cafe" karena pengguna bisa menyimpan cafe dari detail.
+- "Top Up Poin" `<<extend>>` "Upgrade Premium" saat poin pengguna belum cukup.
+- "Akses Hidden Gems", "Wishlist Unlimited", dan "Badge Premium" `<<extend>>` "Upgrade Premium" sebagai benefit setelah premium aktif.
 
 ## 3. DFD Level 0
 
